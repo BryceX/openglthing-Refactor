@@ -1,0 +1,434 @@
+#include <iostream>
+#include "gl_core_4_4.h"
+#include <glfw3.h>
+#include "Gizmos.h"
+#include <math.h>
+#include <tiny_obj_loader.h>
+#define GLM_SWIZZLE
+//#define STB_IMAGE_IMPLEMENTATION
+#include "Texture.h"
+#include <stb_image.h>
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
+#include "Vertex.h"
+#include "Camera.h"
+
+
+
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+float deltaTime = 0;
+
+Vertex testVert;
+
+unsigned int programID;
+
+std::vector<tinyobj::shape_t> shapes;
+std::vector<tinyobj::material_t> materials;
+
+
+
+
+
+//std::string err = tinyobj::LoadObj(shapes, materials, "./Objs/dragon.obj");
+
+struct OpenGLInfo
+{
+	unsigned int m_VAO;
+	unsigned int m_VBO;
+	unsigned int m_IBO;
+	unsigned int m_index_count;
+};
+
+std::vector<OpenGLInfo> m_gl_info;
+
+void createOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
+{
+
+	m_gl_info.resize(shapes.size());
+
+	for (unsigned int mesh_index = 0; mesh_index < shapes.size(); ++mesh_index)
+	{
+		unsigned int fCount = shapes[mesh_index].mesh.positions.size();
+
+		glGenVertexArrays(1, &m_gl_info[mesh_index].m_VAO);
+		glGenBuffers(1, &m_gl_info[mesh_index].m_VBO);
+		glGenBuffers(1, &m_gl_info[mesh_index].m_IBO);
+		glBindVertexArray(m_gl_info[mesh_index].m_VAO);
+		unsigned int float_count = shapes[mesh_index].mesh.positions.size();
+		float_count += shapes[mesh_index].mesh.normals.size();
+		float_count += shapes[mesh_index].mesh.texcoords.size();
+		std::vector<float> vertex_data;
+		vertex_data.reserve(float_count);
+		vertex_data.insert(vertex_data.end(),
+			shapes[mesh_index].mesh.positions.begin(),
+			shapes[mesh_index].mesh.positions.end());
+		vertex_data.insert(vertex_data.end(),
+			shapes[mesh_index].mesh.normals.begin(),
+			shapes[mesh_index].mesh.normals.end());
+		m_gl_info[mesh_index].m_index_count =
+			shapes[mesh_index].mesh.indices.size();
+		glBindBuffer(GL_ARRAY_BUFFER, m_gl_info[mesh_index].m_VBO);
+		glBufferData(GL_ARRAY_BUFFER,
+			vertex_data.size() * sizeof(float),
+			vertex_data.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_gl_info[mesh_index].m_IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			shapes[mesh_index].mesh.indices.size() * sizeof(unsigned int),
+			shapes[mesh_index].mesh.indices.data(), GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0); //position
+		glEnableVertexAttribArray(1); //normal data
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0,
+			(void*)(sizeof(float)*shapes[mesh_index].mesh.positions.size()));
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+	}
+}
+
+
+void MakeView(GLFWwindow* a, double deltaTime)
+{
+	glm::vec3 position = vec3(10, 10, 10);
+	mat4 viewTransform = glm::lookAt(position, vec3(0), vec3(0, 1, 0));
+	mat4 projectionTransform = glm::perspective(glm::pi<float>() * 0.25f, 16 / 9.f, 0.1f, 1000.f);
+	mat4 worldTransform = glm::inverse(viewTransform);
+	float speed = 1;
+}
+
+
+void GetDeltaTime()
+{
+	deltaTime = glfwGetTime();
+	glfwSetTime(0);
+
+}
+
+
+
+
+int main()
+{
+
+	const int rows = 12;
+	const int cols = 12;
+	
+
+	// Window Creation Code
+		if (glfwInit() == false)
+		{
+			return-1;
+		}
+
+		
+
+
+		GLFWwindow* window = glfwCreateWindow(1280, 720, "test", nullptr, nullptr);
+		if (window == nullptr) {
+			glfwTerminate();
+			return -2;
+		}
+		glfwMakeContextCurrent(window);
+		if (ogl_LoadFunctions() == ogl_LOAD_FAILED) {
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			return -3;
+		}
+		auto major = ogl_GetMajorVersion();
+		auto minor = ogl_GetMinorVersion();
+		printf("GL: %i.%i\n", major, minor);
+
+
+
+			//const char* vsSource = "#version 410\n  in vec4 Position;  in vec4 Colour; out vec4 vColour; uniform mat4 ProjectionView; uniform float time; uniform float heightScale; void main(){vColour = Colour; vec4 P = Position; P.y += cos(time + Position.x)*heightScale; gl_Position = ProjectionView*P; }";
+			//char* fsSource = "#version 410\n \in vec4 vColour; \ out vec4 FragColor; \  void main() {FragColor = vColour; FragColor *= vec4(0,.75,.5,1);}";
+
+
+		// Loading a plane
+
+		// Position     TexCoords
+		// X, Y, Z, W,  S,T
+		float vertexData[] = { -5, 0, 5, 1,  0,1,
+							   5, 0, 5, 1,  1,1,
+							   5, 0,-5, 1,  1,0,
+							  -5, 0,-5, 1,  0,0, };
+
+
+		unsigned int indexData[] = { 0,1,2,
+									 0,2,3, };
+
+		unsigned int m_vao;
+		unsigned int m_ibo;
+		unsigned int m_vbo;
+
+		glGenVertexArrays(1, &m_vao);
+		glBindVertexArray(m_vao);
+		glGenBuffers(1, &m_vbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4,
+			vertexData, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &m_ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6,
+			indexData, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
+			sizeof(float) * 6, 0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+			sizeof(float) * 6, ((char*)0) + 16);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+
+
+		// Shader Creation
+
+		/*const char* vsSource = "#version 410\n \
+								layout(location=0) in vec4 Position; \
+								layout(location=1) in vec2 TexCoord; \
+								out vec2 vTexCoord; \
+								uniform mat4 ProjectionView;\
+								void main() { \
+								vTexCoord = TexCoord;\
+								gl_Position = ProjectionView * Position; \
+								}";
+
+		const char* fsSource = "#version 410\n \
+								in vec2 vTexCoord; \
+								out vec4 FragColor; \
+								uniform sampler2D diffuse; \
+								void main(){ \
+								FragColor = texture(diffuse,vTexCoord); \
+								}";
+
+		
+		//taking memory on gpu for shader stuff
+		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		//compiling
+		glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
+		glCompileShader(vertexShader);
+		glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
+		glCompileShader(fragmentShader);
+		programID = glCreateProgram();
+
+
+
+
+
+		//attaching shader onto program
+		glAttachShader(programID, vertexShader);
+		glAttachShader(programID, fragmentShader);
+		glLinkProgram(programID);
+		glGetProgramiv(programID, GL_LINK_STATUS, &success);
+		*/
+
+		//programID = loadShader("vertexpath", "fragmentpath");
+
+		unsigned int m_texture = LoadTexture("./FBX/white.png");
+		RenderObject myFBX;
+		unsigned int fbxShaderProg = loadShader("testvert.txt", "testfrag.txt");
+		myFBX = LoadFBX("./FBX/stanford/bunny.fbx");
+		CreateOpenGLBuffers(myFBX.m_FBX);
+		
+		/*
+		RenderObject myFBX2;
+		myFBX2 = LoadFBX("./FBX/stanford/Bunny.fbx");
+
+		const char* vsSource2 = "#version 410\n\
+								layout(location=0) in vec4 Position;\
+								layout(location = 1) in vec4 Normal;\
+								out vec4 Normal;\
+								uniform mat4 ProjectionView;\
+								void main()\
+								{vNormal = Normal;\
+								gl_Position = ProjectionView * Position;}";
+
+		const char* fsSource2 = "#version 410\n\
+								in vec4 vNormal;\
+								out vec4 FragColor;\
+								float d = max(0,dot(normalize(vNormal.xyz),\
+								vec3(0,1,0)));\
+								void main(){FragColor = vec4(d,d,d,1);}";
+		
+		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertexShader, 1, (const char**)&vsSource2, 0);
+		glCompileShader(vertexShader);
+		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragmentShader, 1, (const char**)&fsSource2, 0);
+		glCompileShader(fragmentShader);
+		programID = glCreateProgram();
+		glAttachShader(programID, vertexShader);
+		glAttachShader(programID, fragmentShader);
+		glLinkProgram(programID);
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);*/
+
+		Gizmos::create();
+
+
+
+
+		float time = 0;
+		glClearColor(0.25f, 0.25f, 0.25f, 1);
+		glEnable(GL_DEPTH_TEST);
+
+		FlyCam planetView;
+		planetView.Init();
+		planetView.setPerspective(glm::pi<float>()*0.25f, 1280 / 720.f, 0.1f, 1000.f);
+		planetView.setLookAt(vec3(10, 10, 10), vec3(0), vec3(0, 1, 0));
+		planetView.setPosition(vec3(10, 10, 10));
+		
+
+	
+		
+
+		while (glfwWindowShouldClose(window) == false && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
+		{
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			GetDeltaTime();
+			//time = glfwGetTime();
+
+			glUseProgram(fbxShaderProg);
+			
+			//float timehaspassed = glGetUniformLocation(programID, "time");
+			//float height = glGetUniformLocation(programID, "heightScale");
+
+			//glUniform1f(timehaspassed, time);
+			//glUniform1f(height, 1);
+
+
+			//find a way to get these two lines  into init
+			unsigned int projectionViewUniform = glGetUniformLocation(fbxShaderProg, "ProjectionView");
+			unsigned int bunnyCam  =  glGetUniformLocation(fbxShaderProg, "cameraPosition");
+			glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(planetView.getProjectionView()));
+			std::cout << glm::to_string( planetView.getPosition() ) << std::endl;
+			glUniform3fv(bunnyCam, 1, glm::value_ptr(planetView.getPosition()));
+
+
+			//glBindVertexArray(grid.VAO);
+			//unsigned int indexCount = (rows - 1) * (cols - 1) * 6;
+			//glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+
+			planetView.Move(GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_A, GLFW_KEY_D, deltaTime*3);
+			planetView.Zoom();
+
+
+
+			projectionViewUniform = glGetUniformLocation(fbxShaderProg, "diffuse");
+			glUniform1i(projectionViewUniform, 0);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_texture);
+			glBindVertexArray(m_vao);
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+			for (unsigned int i = 0; i < myFBX.m_FBX->getMeshCount(); ++i) {
+				FBXMeshNode* mesh = myFBX.m_FBX->getMeshByIndex(i);
+				unsigned int* glData = (unsigned int*)mesh->m_userData;
+				glBindVertexArray(glData[0]);
+				glDrawElements(GL_TRIANGLES,
+					(unsigned int)mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+			}
+
+			myFBX.Draw();
+			
+
+
+			//myFBX2.Draw();
+
+
+
+			/*for (unsigned int i = 0; i < m_gl_info.size(); ++i)
+			{
+				glBindVertexArray(m_gl_info[i].m_VAO);
+				glDrawElements(GL_TRIANGLES, m_gl_info[i].m_index_count, GL_UNSIGNED_INT, 0);
+			}*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			/*Gizmos::clear();
+			Gizmos::addTransform(glm::mat4(1));
+			vec4 white(1);
+			vec4 black(0, 0, 0, 1);
+			for (int i = 0; i < 21; i++)
+			{
+				Gizmos::addLine(vec3(-10 + i, 0, 10), vec3(-10 + i, 0, -10), i == 10 ? white : black);
+				Gizmos::addLine(vec3(10, 0, -10 + i), vec3(-10, 0, -10 + i), i == 10 ? white : black);
+			}
+
+			mat4 spin = glm::rotate(time /30,vec3(0,1,0));
+
+			Gizmos::addSphere(vec3(),1,24,24,vec4(255,205,0,1),&spin);
+
+			mat4 planet = glm::rotate(time/50, vec3(0, .8f, 0))
+						* glm::translate(vec3(5,0,0))
+						* glm::rotate(time/40, vec3(0, 1, 0));
+
+			Gizmos::addSphere(vec3(), .5, 24, 24, vec4(0, 56, 30, 1), &planet);
+
+
+			mat4 moon = glm::translate(vec3(planet[3].xyz))
+					  * glm::rotate(time/2, vec3(0, .8f, 0))
+					 * glm::translate(vec3(3, 0, 0))
+					  * glm::rotate(time, vec3(0, 1, 0));
+
+			Gizmos::addSphere(vec3(), .2, 24, 24, vec4(0, 0, 0, 1), &moon);
+
+			mat4 satellite = glm::translate(vec3(moon[3].xyz))
+				* glm::rotate(time/90, vec3(.25f, 0, 0))
+				*glm::translate(vec3(2, 1, 0));
+
+			Gizmos::addSphere(vec3(), .01, 10, 10, vec4(0, 200, 50, 1), &satellite);
+
+
+			Gizmos::draw(planetView.projectionTransform*planetView.getView());*/
+
+
+
+
+
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+		}
+		Gizmos::destroy();
+		glfwTerminate();
+		glfwDestroyWindow(window);
+
+		return 0;
+	
+
+
+}

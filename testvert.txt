@@ -1,0 +1,21 @@
+#version 410
+
+layout(location=0) in vec4 Position;
+
+layout(location=1) in vec4 Normal;
+
+out vec4 vNormal;
+out vec4 vPosition;
+uniform mat4 ProjectionView;
+
+
+void main()
+
+{
+
+	vNormal = Normal;	// passing information from the vertex shader to the fragment shader
+  	vPosition = Position;
+	// passing information from the vertex shader to the fragment shader
+	gl_Position = ProjectionView * Position;    // calculate the rendered position of this vertex
+
+}

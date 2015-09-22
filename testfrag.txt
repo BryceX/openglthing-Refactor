@@ -1,0 +1,27 @@
+#version 410
+
+in vec4 vNormal;
+
+in vec4 vPosition;
+out vec4 FragColor;
+
+uniform vec3 lightDirection = vec3(0,1,0);
+uniform vec3 lightColor = vec3(.99f,.72f,.07f);
+uniform vec3 cameraPosition = vec3(2,2,2);
+uniform float specularPower =128.0f;
+void main()
+
+{
+
+	float d = max(0, dot(normalize(vNormal.xyz),lightDirection));
+
+	vec3 E = normalize(cameraPosition-vPosition.xyz);
+
+	vec3 R = reflect(-lightDirection*cameraPosition ,vNormal.xyz);
+
+	float s = max(0,dot(E,R));
+
+	s = pow(s,specularPower);
+
+	FragColor = vec4(lightColor * d + lightColor * s,1);
+}
