@@ -8,7 +8,7 @@ out vec4 FragColor;
 uniform vec3 lightDirection = vec3(0,1,0);
 uniform vec3 lightColor = vec3(.99f,.72f,.07f);
 uniform vec3 cameraPosition = vec3(2,2,2);
-uniform float specularPower =128.0f;
+uniform float specularPower = 1;
 void main()
 
 {
