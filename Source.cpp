@@ -113,50 +113,54 @@ void GetDeltaTime()
 
 int main()
 {
-
 	const int rows = 12;
 	const int cols = 12;
-	
 
 	// Window Creation Code
-		if (glfwInit() == false)
-		{
-			return-1;
-		}
+	if (glfwInit() == false)
+	{
+		return-1;
+	}
 
-		
-
-
-		GLFWwindow* window = glfwCreateWindow(1280, 720, "test", nullptr, nullptr);
-		if (window == nullptr) {
-			glfwTerminate();
-			return -2;
-		}
-		glfwMakeContextCurrent(window);
-		if (ogl_LoadFunctions() == ogl_LOAD_FAILED) {
-			glfwDestroyWindow(window);
-			glfwTerminate();
-			return -3;
-		}
-		auto major = ogl_GetMajorVersion();
-		auto minor = ogl_GetMinorVersion();
-		printf("GL: %i.%i\n", major, minor);
+	GLFWwindow* window = glfwCreateWindow(1280, 720, "test", nullptr, nullptr);
+	if (window == nullptr) {
+		glfwTerminate();
+		return -2;
+	}
+	glfwMakeContextCurrent(window);
+	if (ogl_LoadFunctions() == ogl_LOAD_FAILED) {
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -3;
+	}
+	auto major = ogl_GetMajorVersion();
+	auto minor = ogl_GetMinorVersion();
+	printf("GL: %i.%i\n", major, minor);
 
 
 
-			//const char* vsSource = "#version 410\n  in vec4 Position;  in vec4 Colour; out vec4 vColour; uniform mat4 ProjectionView; uniform float time; uniform float heightScale; void main(){vColour = Colour; vec4 P = Position; P.y += cos(time + Position.x)*heightScale; gl_Position = ProjectionView*P; }";
-			//char* fsSource = "#version 410\n \in vec4 vColour; \ out vec4 FragColor; \  void main() {FragColor = vColour; FragColor *= vec4(0,.75,.5,1);}";
+	//const char* vsSource = "#version 410\n  in vec4 Position;  in vec4 Colour; out vec4 vColour; uniform mat4 ProjectionView; uniform float time; uniform float heightScale; void main(){vColour = Colour; vec4 P = Position; P.y += cos(time + Position.x)*heightScale; gl_Position = ProjectionView*P; }";
+	//char* fsSource = "#version 410\n \in vec4 vColour; \ out vec4 FragColor; \  void main() {FragColor = vColour; FragColor *= vec4(0,.75,.5,1);}";
 
 
-		// Loading a plane
+// Loading a plane
 
-		// Position     TexCoords
-		// X, Y, Z, W,  S,T
-		float vertexData[] = { -5, 0, 5, 1,  0,1,
+// Position     TexCoords
+// X, Y, Z, W,  S,T
+	
+			
+		/*float vertexData[] =  { -5, 0, 5, 1, 0,1,
 							   5, 0, 5, 1,  1,1,
 							   5, 0,-5, 1,  1,0,
 							  -5, 0,-5, 1,  0,0, };
 
+		*/
+
+	Vertex vertexData[] = 
+		{{{-5,0,5,1},  {0,1,0,0}, {1,0,0,0}, {0,1}},/* Vertex 1 */
+		 {{ 5,0,5,1},  {0,1,0,0}, {1,0,0,0}, {1,1}},
+		 {{ 5,0,-5,1}, {0,1,0,0}, {1,0,0,0}, {1,0}},
+		 {{-5,0,-5,1}, {0,1,0,0}, {1,0,0,0}, {0,0}}}; 
 
 		unsigned int indexData[] = { 0,1,2,
 									 0,2,3, };
@@ -170,7 +174,7 @@ int main()
 		glGenBuffers(1, &m_vbo);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4,
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4,
 			vertexData, GL_STATIC_DRAW);
 
 		glGenBuffers(1, &m_ibo);
@@ -178,12 +182,24 @@ int main()
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6,
 			indexData, GL_STATIC_DRAW);
 
+		// vec4 position
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
-			sizeof(float) * 6, 0);
+			sizeof(Vertex), 0);
+
+		// vec2 TexCoord
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
-			sizeof(float) * 6, ((char*)0) + 16);
+			sizeof(Vertex), (void*)(sizeof( glm::vec4 ) * 3));
+		
+		// vec4 normal
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4)) );
+
+		// vec4 tangent
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, false, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2) );
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -235,44 +251,16 @@ int main()
 
 		//programID = loadShader("vertexpath", "fragmentpath");
 
-		unsigned int m_texture = LoadTexture("./FBX/white.png");
+		unsigned int m_texture	= LoadTexture("./textures/rock_diffuse.tga");
+		unsigned int m_normal	= LoadTexture("./textures/rock_normal.tga");
+		unsigned int m_specular = LoadTexture("./textures/rock_specular.tga");
+		
+
+
 		RenderObject myFBX;
 		unsigned int fbxShaderProg = loadShader("testvert.txt", "testfrag.txt");
-		myFBX = LoadFBX("./FBX/stanford/bunny.fbx");
-		CreateOpenGLBuffers(myFBX.m_FBX);
-		
-		/*
-		RenderObject myFBX2;
-		myFBX2 = LoadFBX("./FBX/stanford/Bunny.fbx");
-
-		const char* vsSource2 = "#version 410\n\
-								layout(location=0) in vec4 Position;\
-								layout(location = 1) in vec4 Normal;\
-								out vec4 Normal;\
-								uniform mat4 ProjectionView;\
-								void main()\
-								{vNormal = Normal;\
-								gl_Position = ProjectionView * Position;}";
-
-		const char* fsSource2 = "#version 410\n\
-								in vec4 vNormal;\
-								out vec4 FragColor;\
-								float d = max(0,dot(normalize(vNormal.xyz),\
-								vec3(0,1,0)));\
-								void main(){FragColor = vec4(d,d,d,1);}";
-		
-		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, (const char**)&vsSource2, 0);
-		glCompileShader(vertexShader);
-		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, (const char**)&fsSource2, 0);
-		glCompileShader(fragmentShader);
-		programID = glCreateProgram();
-		glAttachShader(programID, vertexShader);
-		glAttachShader(programID, fragmentShader);
-		glLinkProgram(programID);
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);*/
+		//myFBX = LoadFBX("./FBX/stanford/bunny.fbx");
+		//CreateOpenGLBuffers(myFBX.m_FBX);
 
 		Gizmos::create();
 
@@ -301,7 +289,9 @@ int main()
 			//time = glfwGetTime();
 
 			glUseProgram(fbxShaderProg);
-			
+
+			planetView.Move(GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_A, GLFW_KEY_D, deltaTime * 3);
+			planetView.Zoom();
 			//float timehaspassed = glGetUniformLocation(programID, "time");
 			//float height = glGetUniformLocation(programID, "heightScale");
 
@@ -310,11 +300,9 @@ int main()
 
 
 			//find a way to get these two lines  into init
-			unsigned int projectionViewUniform = glGetUniformLocation(fbxShaderProg, "ProjectionView");
-			unsigned int bunnyCam  =  glGetUniformLocation(fbxShaderProg, "cameraPosition");
-			glUniformMatrix4fv(projectionViewUniform, 1, false, glm::value_ptr(planetView.getProjectionView()));
-			std::cout << glm::to_string( planetView.getPosition() ) << std::endl;
-			glUniform3fv(bunnyCam, 1, glm::value_ptr(planetView.getPosition()));
+			
+			
+
 
 
 			//glBindVertexArray(grid.VAO);
@@ -323,28 +311,57 @@ int main()
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
+			//binding camera here
+			int loc = glGetUniformLocation(fbxShaderProg, "ProjectionView");
+			glUniformMatrix4fv(loc, 1, GL_FALSE, &(planetView.getProjectionView()[0][0]));
 
-			planetView.Move(GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_A, GLFW_KEY_D, deltaTime*3);
-			planetView.Zoom();
+
+			unsigned int bunnyCam = glGetUniformLocation(fbxShaderProg, "cameraPosition");
+			glUniform3fv(bunnyCam, 1, glm::value_ptr(planetView.getPosition()));
+
+			//telling shader where it is
+			loc = glGetUniformLocation(fbxShaderProg, "diffuseMap");
+			glUniform1i(loc, 0);
+			
+			loc = glGetUniformLocation(fbxShaderProg, "normalMap");
+			glUniform1i(loc, 1);
+
+			loc = glGetUniformLocation(fbxShaderProg, "specularMap");
+			glUniform1i(loc, 2);
 
 
+			loc = glGetUniformLocation(fbxShaderProg, "TOGGLE");
+			glUniform1i(loc, glfwGetKey(window, 'G'));
 
-			projectionViewUniform = glGetUniformLocation(fbxShaderProg, "diffuse");
-			glUniform1i(projectionViewUniform, 0);
+			if (loc == GL_INVALID_VALUE) std::cout << "INVALID VALUE";
+			if (loc == GL_INVALID_OPERATION) std::cout << "INVALID OPERATION";
 
+			vec3 light(sin(glfwGetTime()), 1, cos(glfwGetTime()));
+			loc = glGetUniformLocation(fbxShaderProg, "lightDirection");
+			glUniform3f(loc, light.x, light.y, light.z);
+
+			//setting texture slots
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, m_texture);
-			glBindVertexArray(m_vao);
-			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-			for (unsigned int i = 0; i < myFBX.m_FBX->getMeshCount(); ++i) {
-				FBXMeshNode* mesh = myFBX.m_FBX->getMeshByIndex(i);
-				unsigned int* glData = (unsigned int*)mesh->m_userData;
-				glBindVertexArray(glData[0]);
-				glDrawElements(GL_TRIANGLES,
-					(unsigned int)mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
-			}
 
-			myFBX.Draw();
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, m_normal);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, m_specular);
+
+
+			glBindVertexArray(m_vao);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+			//for (unsigned int i = 0; i < myFBX.m_FBX->getMeshCount(); ++i) {
+			//	FBXMeshNode* mesh = myFBX.m_FBX->getMeshByIndex(i);
+			//	unsigned int* glData = (unsigned int*)mesh->m_userData;
+			//	glBindVertexArray(glData[0]);
+			//	glDrawElements(GL_TRIANGLES,
+			//		(unsigned int)mesh->m_indices.size(), GL_UNSIGNED_INT, 0);
+			//}
+
+			//myFBX.Draw();
 			
 
 
@@ -357,27 +374,6 @@ int main()
 				glBindVertexArray(m_gl_info[i].m_VAO);
 				glDrawElements(GL_TRIANGLES, m_gl_info[i].m_index_count, GL_UNSIGNED_INT, 0);
 			}*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 			/*Gizmos::clear();
 			Gizmos::addTransform(glm::mat4(1));

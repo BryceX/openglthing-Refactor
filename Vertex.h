@@ -31,6 +31,10 @@ void DeleteOpenGLBuffers(FBXFile* name);
 struct Vertex 
 {
 	glm::vec4 position;
+	glm::vec4 normal;
+	glm::vec4 tangent;
+	glm::vec2 texCoor;
+
 	glm::vec4 colour;
 };
 
