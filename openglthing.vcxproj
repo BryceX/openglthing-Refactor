@@ -124,6 +124,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DemoApp.cpp" />
     <ClCompile Include="Gizmos.cpp" />
     <ClCompile Include="gl_core_4_4.c" />
     <ClCompile Include="includes\tinyobjloader\tiny_obj_loader.cc" />
@@ -134,6 +135,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DemoApp.h" />
     <ClInclude Include="FBXFile.h" />
     <ClInclude Include="gizmos.h" />
     <ClInclude Include="gl_core_4_4.h" />

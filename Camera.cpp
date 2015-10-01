@@ -99,11 +99,6 @@ void FlyCam::Zoom()
 	}
 	
 }
-void FlyCam::ChangeFOV() 
-{
-
-}
-
 
 
 

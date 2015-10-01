@@ -98,3 +98,69 @@
 //	deltaTime = glfwGetTime();
 //	glfwSetTime(0);
 //}
+
+#include "Application.h"	// header for this file
+
+// system headers
+#include <iostream>			
+
+// library headers
+#include "gl_core_4_4.h"
+#include <glfw3.h>
+
+// custom headers
+
+
+
+int Application::Init()
+{
+	// initializes GLFW, our window manager and input manager
+	if (glfwInit() == false)
+	{
+		return-1;
+	}
+
+	window = glfwCreateWindow(windowWidth, windowHeight, "test", nullptr, nullptr);
+	if (window == nullptr) {
+		// glfw failed to initialize, terminate the prog
+		glfwTerminate();
+		return -2;
+	}
+
+	glfwMakeContextCurrent(window);
+	if (ogl_LoadFunctions() == ogl_LOAD_FAILED) {
+
+		// openGL failed to initialize, terminate the prog
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -3;
+	}
+	auto major = ogl_GetMajorVersion();
+	auto minor = ogl_GetMinorVersion();
+	printf("GL: %i.%i\n", major, minor);
+
+	return OnInit();	// ALL CLEAR! No problems.
+}
+
+bool Application::Tick()
+{
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		return false;
+	}
+
+	return OnTick();
+}
+
+void Application::Draw()
+{
+	OnDraw();
+}
+
+void Application::Exit()
+{
+	OnExit();
+}

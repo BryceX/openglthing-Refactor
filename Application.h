@@ -34,3 +34,35 @@
 //
 //
 //
+
+#pragma once
+
+// forward declarations
+class GLFWwindow;
+
+// Base application class
+class Application
+{
+public:
+	// Initialize window and OpenGL context
+	int Init();
+	virtual int OnInit() = 0;	// = 0 means that it's an abstract function
+								// abstract functions must be filled in by child classes
+
+	// Called every frame to perform calculations
+	bool Tick();
+	virtual bool OnTick() = 0;
+
+	// Draws meshes to the front buffer
+	void Draw();
+	virtual void OnDraw() = 0;
+
+	// Performs clean up and other deinitialization routines
+	void Exit();
+	virtual void OnExit() = 0;
+
+	float windowWidth = 1280;
+	float windowHeight = 720;
+
+	GLFWwindow *window;
+};

@@ -56,7 +56,6 @@ public:
 	void Init();
 	void Move(int up, int down, int left, int right, double deltaTime);
 	void Zoom();
-	void ChangeFOV();
 	static void scrollCallback(GLFWwindow * window, double xScroll, double yScroll);
 
 	static double X_SCROLL;
