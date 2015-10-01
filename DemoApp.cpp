@@ -10,6 +10,9 @@ int DemoApplication::OnInit()
 
 bool DemoApplication::OnTick()
 {
+	std::cout << "dTime:" << GetDeltaTime() << std::endl;
+	std::cout << "pTime:" << GetTimePassed() << std::endl;
+
 	std::cout << "DEMO APP TICKING\n";
 	return true;
 }

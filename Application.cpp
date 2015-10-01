@@ -139,6 +139,9 @@ int Application::Init()
 	auto minor = ogl_GetMinorVersion();
 	printf("GL: %i.%i\n", major, minor);
 
+	// glfw
+	glfwSetTime(0.0);	// reset time
+
 	return OnInit();	// ALL CLEAR! No problems.
 }
 
@@ -146,6 +149,10 @@ bool Application::Tick()
 {
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+
+	// deltaTime calcs
+	deltaTime = glfwGetTime() - timePassed;	// difference in time between this frame and the last
+	timePassed = glfwGetTime();	// record the total amount of time elapsed since the beginning of this app
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -163,4 +170,14 @@ void Application::Draw()
 void Application::Exit()
 {
 	OnExit();
+}
+
+float Application::GetDeltaTime()
+{
+	return deltaTime;
+}
+
+float Application::GetTimePassed()
+{
+	return timePassed;
 }

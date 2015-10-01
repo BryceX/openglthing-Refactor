@@ -19,6 +19,7 @@ using glm::vec3;
 using glm::vec4;
 using glm::mat4;
 float deltaTime = 0;
+float timePassed = 0;
 float fovFloat = 0.25f;
 float * fovPointer = &fovFloat;
 double xPos, yPos;
@@ -121,6 +122,7 @@ void MakeView(GLFWwindow* a, double deltaTime)
 void GetDeltaTime()
 {
 	deltaTime = glfwGetTime();
+	timePassed = glfwGetTime();
 	glfwSetTime(0);
 
 }

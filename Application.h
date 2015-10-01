@@ -43,6 +43,10 @@ class GLFWwindow;
 // Base application class
 class Application
 {
+private:
+	float timePassed = 0;
+	float deltaTime = 0;
+
 public:
 	// Initialize window and OpenGL context
 	int Init();
@@ -63,6 +67,9 @@ public:
 
 	float windowWidth = 1280;
 	float windowHeight = 720;
-
+	
+	float GetDeltaTime();
+	float GetTimePassed();
+	
 	GLFWwindow *window;
 };
