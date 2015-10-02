@@ -147,7 +147,6 @@ int Application::Init()
 
 bool Application::Tick()
 {
-	glfwSwapBuffers(window);
 	glfwPollEvents();
 
 	// deltaTime calcs
@@ -165,6 +164,8 @@ bool Application::Tick()
 void Application::Draw()
 {
 	OnDraw();
+
+	glfwSwapBuffers(window);
 }
 
 void Application::Exit()

@@ -12,133 +12,127 @@
 #include "glm/ext.hpp"
 #include "Vertex.h"
 #include "Camera.h"
-
-
-
-using glm::vec3;
-using glm::vec4;
-using glm::mat4;
-float deltaTime = 0;
-float timePassed = 0;
-float fovFloat = 0.25f;
-float * fovPointer = &fovFloat;
-double xPos, yPos;
-int windowWidth = 1280;
-int windowHeight = 720;
-
-Vertex testVert;
-
-unsigned int programID;
-
-std::vector<tinyobj::shape_t> shapes;
-std::vector<tinyobj::material_t> materials;
-
-
-
-
-
-//std::string err = tinyobj::LoadObj(shapes, materials, "./Objs/dragon.obj");
-
-static void CursorPos(GLFWwindow*windowName, double xpos, double ypos)
-{
-	xPos = xpos;
-	yPos = ypos;
-	int click = glfwGetMouseButton(windowName, GLFW_MOUSE_BUTTON_LEFT);
-	if (click == GLFW_PRESS)
-	{
-		std::cout << xPos << "     " << yPos << std::endl;
-	}
-	
-}
-
-struct OpenGLInfo
-{
-	unsigned int m_VAO;
-	unsigned int m_VBO;
-	unsigned int m_IBO;
-	unsigned int m_index_count;
-};
-
-std::vector<OpenGLInfo> m_gl_info;
-
-void createOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
-{
-
-	m_gl_info.resize(shapes.size());
-
-	for (unsigned int mesh_index = 0; mesh_index < shapes.size(); ++mesh_index)
-	{
-		unsigned int fCount = shapes[mesh_index].mesh.positions.size();
-
-		glGenVertexArrays(1, &m_gl_info[mesh_index].m_VAO);
-		glGenBuffers(1, &m_gl_info[mesh_index].m_VBO);
-		glGenBuffers(1, &m_gl_info[mesh_index].m_IBO);
-		glBindVertexArray(m_gl_info[mesh_index].m_VAO);
-		unsigned int float_count = shapes[mesh_index].mesh.positions.size();
-		float_count += shapes[mesh_index].mesh.normals.size();
-		float_count += shapes[mesh_index].mesh.texcoords.size();
-		std::vector<float> vertex_data;
-		vertex_data.reserve(float_count);
-		vertex_data.insert(vertex_data.end(),
-			shapes[mesh_index].mesh.positions.begin(),
-			shapes[mesh_index].mesh.positions.end());
-		vertex_data.insert(vertex_data.end(),
-			shapes[mesh_index].mesh.normals.begin(),
-			shapes[mesh_index].mesh.normals.end());
-		m_gl_info[mesh_index].m_index_count =
-			shapes[mesh_index].mesh.indices.size();
-		glBindBuffer(GL_ARRAY_BUFFER, m_gl_info[mesh_index].m_VBO);
-		glBufferData(GL_ARRAY_BUFFER,
-			vertex_data.size() * sizeof(float),
-			vertex_data.data(), GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_gl_info[mesh_index].m_IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			shapes[mesh_index].mesh.indices.size() * sizeof(unsigned int),
-			shapes[mesh_index].mesh.indices.data(), GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0); //position
-		glEnableVertexAttribArray(1); //normal data
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0,
-			(void*)(sizeof(float)*shapes[mesh_index].mesh.positions.size()));
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-	}
-}
-
-
-void MakeView(GLFWwindow* a, double deltaTime)
-{
-	glm::vec3 position = vec3(10, 10, 10);
-	mat4 viewTransform = glm::lookAt(position, vec3(0), vec3(0, 1, 0));
-	mat4 projectionTransform = glm::perspective(glm::pi<float>() * 0.25f, 16 / 9.f, 0.1f, 1000.f);
-	mat4 worldTransform = glm::inverse(viewTransform);
-	float speed = 1;
-}
-
-
-void GetDeltaTime()
-{
-	deltaTime = glfwGetTime();
-	timePassed = glfwGetTime();
-	glfwSetTime(0);
-
-}
-void ChangeFOV(GLFWwindow* windowName, float &FOV)
-{
-	if (glfwGetKey(windowName, 'Q') == GLFW_PRESS)
-	{
-		fovFloat -= 0.01f;
-		FOV = glm::pi<float>() * (fovFloat);
-	}
-	if (glfwGetKey(windowName, 'E') == GLFW_PRESS)
-	{
-		fovFloat += 0.01f;
-		FOV = glm::pi<float>() * (fovFloat);
-	}
-}
+//
+//
+//
+//using glm::vec3;
+//using glm::vec4;
+//using glm::mat4;
+//float deltaTime = 0;
+//float timePassed = 0;
+//float fovFloat = 0.25f;
+//float * fovPointer = &fovFloat;
+//double xPos, yPos;
+//int windowWidth = 1280;
+//int windowHeight = 720;
+//
+//Vertex testVert;
+//
+//unsigned int programID;
+//
+//std::vector<tinyobj::shape_t> shapes;
+//std::vector<tinyobj::material_t> materials;
+//
+//
+//
+//
+//
+////std::string err = tinyobj::LoadObj(shapes, materials, "./Objs/dragon.obj");
+//
+//static void CursorPos(GLFWwindow*windowName, double xpos, double ypos)
+//{
+//	xPos = xpos;
+//	yPos = ypos;
+//	int click = glfwGetMouseButton(windowName, GLFW_MOUSE_BUTTON_LEFT);
+//	if (click == GLFW_PRESS)
+//	{
+//		std::cout << xPos << "     " << yPos << std::endl;
+//	}
+//	
+//}
+//
+//
+//
+//std::vector<OpenGLInfo> m_gl_info;
+//
+//void createOpenGLBuffers(std::vector<tinyobj::shape_t>& shapes)
+//{
+//
+//	m_gl_info.resize(shapes.size());
+//
+//	for (unsigned int mesh_index = 0; mesh_index < shapes.size(); ++mesh_index)
+//	{
+//		unsigned int fCount = shapes[mesh_index].mesh.positions.size();
+//
+//		glGenVertexArrays(1, &m_gl_info[mesh_index].m_VAO);
+//		glGenBuffers(1, &m_gl_info[mesh_index].m_VBO);
+//		glGenBuffers(1, &m_gl_info[mesh_index].m_IBO);
+//		glBindVertexArray(m_gl_info[mesh_index].m_VAO);
+//		unsigned int float_count = shapes[mesh_index].mesh.positions.size();
+//		float_count += shapes[mesh_index].mesh.normals.size();
+//		float_count += shapes[mesh_index].mesh.texcoords.size();
+//		std::vector<float> vertex_data;
+//		vertex_data.reserve(float_count);
+//		vertex_data.insert(vertex_data.end(),
+//			shapes[mesh_index].mesh.positions.begin(),
+//			shapes[mesh_index].mesh.positions.end());
+//		vertex_data.insert(vertex_data.end(),
+//			shapes[mesh_index].mesh.normals.begin(),
+//			shapes[mesh_index].mesh.normals.end());
+//		m_gl_info[mesh_index].m_index_count =
+//			shapes[mesh_index].mesh.indices.size();
+//		glBindBuffer(GL_ARRAY_BUFFER, m_gl_info[mesh_index].m_VBO);
+//		glBufferData(GL_ARRAY_BUFFER,
+//			vertex_data.size() * sizeof(float),
+//			vertex_data.data(), GL_STATIC_DRAW);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_gl_info[mesh_index].m_IBO);
+//		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+//			shapes[mesh_index].mesh.indices.size() * sizeof(unsigned int),
+//			shapes[mesh_index].mesh.indices.data(), GL_STATIC_DRAW);
+//		glEnableVertexAttribArray(0); //position
+//		glEnableVertexAttribArray(1); //normal data
+//		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+//		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 0,
+//			(void*)(sizeof(float)*shapes[mesh_index].mesh.positions.size()));
+//		glBindVertexArray(0);
+//		glBindBuffer(GL_ARRAY_BUFFER, 0);
+//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//
+//
+//	}
+//}
+//
+//
+//void MakeView(GLFWwindow* a, double deltaTime)
+//{
+//	glm::vec3 position = vec3(10, 10, 10);
+//	mat4 viewTransform = glm::lookAt(position, vec3(0), vec3(0, 1, 0));
+//	mat4 projectionTransform = glm::perspective(glm::pi<float>() * 0.25f, 16 / 9.f, 0.1f, 1000.f);
+//	mat4 worldTransform = glm::inverse(viewTransform);
+//	float speed = 1;
+//}
+//
+//
+//void GetDeltaTime()
+//{
+//	deltaTime = glfwGetTime();
+//	timePassed = glfwGetTime();
+//	glfwSetTime(0);
+//
+//}
+//void ChangeFOV(GLFWwindow* windowName, float &FOV)
+//{
+//	if (glfwGetKey(windowName, 'Q') == GLFW_PRESS)
+//	{
+//		fovFloat -= 0.01f;
+//		FOV = glm::pi<float>() * (fovFloat);
+//	}
+//	if (glfwGetKey(windowName, 'E') == GLFW_PRESS)
+//	{
+//		fovFloat += 0.01f;
+//		FOV = glm::pi<float>() * (fovFloat);
+//	}
+//}
 
 
 //

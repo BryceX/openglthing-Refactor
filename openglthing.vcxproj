@@ -139,6 +139,7 @@
     <ClInclude Include="FBXFile.h" />
     <ClInclude Include="gizmos.h" />
     <ClInclude Include="gl_core_4_4.h" />
+    <ClInclude Include="OpenGLInfo.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
